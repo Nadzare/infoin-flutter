@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../data/dummy_data.dart';
+import '../../services/auth_service.dart';
 import '../main_screen.dart';
 
 class SourceSelectionScreen extends StatefulWidget {
-  const SourceSelectionScreen({super.key});
+  final String countryCode;
+  final List<String> selectedTopics;
+  
+  const SourceSelectionScreen({
+    super.key,
+    required this.countryCode,
+    required this.selectedTopics,
+  });
 
   @override
   State<SourceSelectionScreen> createState() => _SourceSelectionScreenState();
@@ -11,21 +19,65 @@ class SourceSelectionScreen extends StatefulWidget {
 
 class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
   final Set<String> selectedSources = {};
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
-  void _handleFinish() {
-    if (selectedSources.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MainScreen(),
-        ),
-      );
-    } else {
+  Future<void> _handleFinish() async {
+    if (selectedSources.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pilih minimal 1 sumber berita'),
         ),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = _authService.getCurrentUser();
+      if (user != null) {
+        // Simpan preferences ke database
+        await _authService.updateProfile(
+          userId: user.id,
+          country: widget.countryCode,
+          selectedTopics: widget.selectedTopics,
+        );
+
+        if (mounted) {
+          // Navigate ke MainScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Preferensi berhasil disimpan!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan preferensi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -212,18 +264,29 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
                       ),
                     ),
                   FilledButton(
-                    onPressed: _handleFinish,
+                    onPressed: _isLoading ? null : _handleFinish,
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Selesai',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            'Selesai',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ],
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/community_news_service.dart';
+import '../services/notification_service.dart';
+import '../services/auth_service.dart';
 
 class CreateNewsScreen extends StatefulWidget {
   const CreateNewsScreen({super.key});
@@ -81,6 +83,27 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
             : null,
       );
 
+      // Create notification for new community post
+      final authService = AuthService();
+      final user = authService.getCurrentUser();
+      String authorName = 'Pengguna';
+      
+      if (user != null) {
+        try {
+          final profile = await authService.getUserProfile(user.id);
+          if (profile != null && profile['full_name'] != null) {
+            authorName = profile['full_name'];
+          }
+        } catch (e) {
+          // Use default name if error
+        }
+      }
+      
+      await NotificationService.notifyNewCommunityPost(
+        _titleController.text.trim(),
+        authorName,
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -114,11 +137,54 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Berita Baru'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.grey[50],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(135),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[400]!, Colors.blue[600]!],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              child: Column(
+                children: [
+                  // Logo
+                  Image.asset(
+                    'assets/images/infoin-long.png',
+                    height: 50,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 16),
+                  // Title Row
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Buat Berita Baru',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(

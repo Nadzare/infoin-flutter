@@ -69,7 +69,9 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const TopicSelectionScreen(),
+          builder: (context) => TopicSelectionScreen(
+            countryCode: selectedCountryCode!,
+          ),
         ),
       );
     } else {

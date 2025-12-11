@@ -186,10 +186,55 @@ class _CommunityNewsDetailScreenState extends State<CommunityNewsDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail Berita'),
-        backgroundColor: const Color(0xFF0097A7),
-        foregroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(135),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[400]!, Colors.blue[600]!],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              child: Column(
+                children: [
+                  // Logo
+                  Image.asset(
+                    'assets/images/infoin-long.png',
+                    height: 50,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 16),
+                  // Title Row
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Detail Berita',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [

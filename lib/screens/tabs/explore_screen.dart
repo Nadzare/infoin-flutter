@@ -104,43 +104,93 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // App Bar
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            title: const Text('Explore'),
-          ),
-          // Search Bar
+          // Modern Header
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Cari berita...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _searchController.clear();
-                              _filterNews('');
-                            });
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[100],
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue[400]!, Colors.blue[600]!],
                 ),
-                onChanged: (value) {
-                  _filterNews(value);
-                },
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo
+                  Center(
+                    child: Image.asset(
+                      'assets/images/infoin-long.png',
+                      height: 50,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Jelajahi',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Cari berita berdasarkan kategori',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Cari berita...',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _filterNews('');
+                                  });
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        _filterNews(value);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -164,23 +214,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           // Categories Section
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              margin: const EdgeInsets.only(top: 8),
+              child: const Text(
                 'Kategori',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
           // Categories Grid
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 1.5,
+                childAspectRatio: 1.3,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -188,19 +241,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 (context, index) {
                   final category = dummyCategories[index];
                   final isSelected = _selectedCategory == category.name;
-                  return Card(
-                    elevation: isSelected ? 4 : 0,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : null,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey[300]!,
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Colors.blue[600]! : Colors.grey[200]!,
                         width: isSelected ? 2 : 1,
                       ),
+                      boxShadow: [
+                        if (isSelected)
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                      ],
                     ),
                     child: InkWell(
                       onTap: () {
@@ -210,25 +266,43 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           _selectCategory(category.name);
                         }
                       },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              category.icon,
-                              style: const TextStyle(fontSize: 36),
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: isSelected 
+                                    ? Colors.blue[50]
+                                    : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  category.icon,
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    color: isSelected 
+                                        ? Colors.blue[600]
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
                             Text(
                               category.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected 
+                                    ? Colors.blue[600]
+                                    : Colors.black87,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],

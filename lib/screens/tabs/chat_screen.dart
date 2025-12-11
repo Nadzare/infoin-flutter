@@ -313,93 +313,129 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.smart_toy,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+      backgroundColor: Colors.grey[50],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(155),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[400]!, Colors.blue[600]!],
             ),
-            const SizedBox(width: 12),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('AI Assistant'),
-                Text(
-                  'Gemini 2.5 Flash',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.normal,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Column(
+                children: [
+                  // Logo
+                  Image.asset(
+                    'assets/images/infoin-long.png',
+                    height: 50,
+                    fit: BoxFit.contain,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  // Title Row
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.auto_awesome,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Chat AI',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Gemini 2.5 Flash',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
+                        onPressed: _showQuickActions,
+                        tooltip: 'Pertanyaan Cepat',
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.white),
+                        tooltip: 'More Options',
+                        onSelected: (value) {
+                          if (value == 'status') {
+                            _showRateLimitStatus();
+                          } else if (value == 'clear_cache') {
+                            _clearCache();
+                          } else if (value == 'new_chat') {
+                            setState(() {
+                              _messages.clear();
+                              _messages.addAll(dummyChatMessages);
+                            });
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'status',
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline, size: 20),
+                                SizedBox(width: 12),
+                                Text('Status API'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'clear_cache',
+                            child: Row(
+                              children: [
+                                Icon(Icons.cleaning_services, size: 20),
+                                SizedBox(width: 12),
+                                Text('Clear Cache'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'new_chat',
+                            child: Row(
+                              children: [
+                                Icon(Icons.refresh, size: 20),
+                                SizedBox(width: 12),
+                                Text('Mulai Chat Baru'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.auto_awesome),
-            tooltip: 'Pertanyaan Cepat',
-            onPressed: _showQuickActions,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'More Options',
-            onSelected: (value) {
-              if (value == 'status') {
-                _showRateLimitStatus();
-              } else if (value == 'clear_cache') {
-                _clearCache();
-              } else if (value == 'new_chat') {
-                setState(() {
-                  _messages.clear();
-                  _messages.addAll(dummyChatMessages);
-                });
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'status',
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 20),
-                    SizedBox(width: 12),
-                    Text('Status API'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'clear_cache',
-                child: Row(
-                  children: [
-                    Icon(Icons.cleaning_services, size: 20),
-                    SizedBox(width: 12),
-                    Text('Clear Cache'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'new_chat',
-                child: Row(
-                  children: [
-                    Icon(Icons.refresh, size: 20),
-                    SizedBox(width: 12),
-                    Text('Mulai Chat Baru'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
       body: Column(
         children: [

@@ -3,7 +3,12 @@ import '../../data/dummy_data.dart';
 import 'source_selection_screen.dart';
 
 class TopicSelectionScreen extends StatefulWidget {
-  const TopicSelectionScreen({super.key});
+  final String countryCode;
+  
+  const TopicSelectionScreen({
+    super.key,
+    required this.countryCode,
+  });
 
   @override
   State<TopicSelectionScreen> createState() => _TopicSelectionScreenState();
@@ -17,7 +22,10 @@ class _TopicSelectionScreenState extends State<TopicSelectionScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const SourceSelectionScreen(),
+          builder: (context) => SourceSelectionScreen(
+            countryCode: widget.countryCode,
+            selectedTopics: selectedTopics.toList(),
+          ),
         ),
       );
     } else {

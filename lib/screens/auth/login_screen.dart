@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'register_screen.dart';
-import '../onboarding/country_selection_screen.dart';
 import '../main_screen.dart';
 import '../../services/auth_service.dart';
 
@@ -52,23 +51,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.user != null) {
-        // Check if user has completed onboarding
-        final hasCompleted = await _authService.hasCompletedOnboarding(response.user!.id);
-
+        // Login berhasil, langsung ke MainScreen
+        // Karena user sudah pernah membuat akun sebelumnya
         if (mounted) {
-          if (hasCompleted) {
-            // Profile complete, go to MainScreen
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MainScreen()),
-            );
-          } else {
-            // Profile incomplete, go to onboarding
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const CountrySelectionScreen()),
-            );
-          }
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
         }
       }
     } on AuthException catch (e) {

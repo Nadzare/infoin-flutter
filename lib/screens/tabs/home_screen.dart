@@ -3,11 +3,14 @@ import '../../widgets/community_news_card.dart';
 import '../../services/news_service.dart';
 import '../../services/community_news_service.dart';
 import '../../services/history_service.dart';
+import '../../services/auth_service.dart';
+import '../../services/notification_service.dart';
 import '../../models/article_model.dart';
 import '../../models/community_news_model.dart';
 import '../../models/news_model.dart';
 import '../create_news_screen.dart';
 import '../news_detail_webview.dart';
+import '../notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,61 +21,201 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<_CommunityNewsTabState> _communityTabKey = GlobalKey();
+  final AuthService _authService = AuthService();
+  String _userName = 'Guest';
+  bool _isLoadingName = true;
+  int _unreadNotificationCount = 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+    _loadNotificationCount();
+  }
+  
+  Future<void> _loadNotificationCount() async {
+    final count = await NotificationService.getUnreadCount();
+    if (mounted) {
+      setState(() {
+        _unreadNotificationCount = count;
+      });
+    }
+  }
+  
+  Future<void> _loadUserName() async {
+    try {
+      final user = _authService.getCurrentUser();
+      print('Current user: ${user?.id}'); // Debug
+      
+      if (user != null) {
+        final profile = await _authService.getUserProfile(user.id);
+        print('Profile data: $profile'); // Debug
+        
+        if (profile != null && profile['full_name'] != null) {
+          if (mounted) {
+            setState(() {
+              _userName = profile['full_name'];
+              _isLoadingName = false;
+            });
+          }
+        } else {
+          // Fallback to email if no full_name
+          if (mounted) {
+            setState(() {
+              _userName = user.email?.split('@')[0] ?? 'User';
+              _isLoadingName = false;
+            });
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _userName = 'Guest';
+            _isLoadingName = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading user name: $e'); // Debug
+      if (mounted) {
+        setState(() {
+          _userName = 'User';
+          _isLoadingName = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: Colors.grey[50],
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
-              // App Bar
-              SliverAppBar(
-                floating: true,
-                snap: true,
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.article_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('Infoin'),
-                  ],
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {
-                      // TODO: Navigate to notifications
-                    },
-                  ),
-                ],
-              ),
-              // Greeting Header
+              // Custom Header with Profile
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 50, 16, 20),
+                  color: Colors.white,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Selamat Datang! 👋',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                      // Logo
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/infoin-long.png',
+                            height: 50,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Berikut berita terbaru untuk Anda',
-                        style:
-                            Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: Colors.grey[600],
+                      const SizedBox(height: 16),
+                      // User Profile Row
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.blue[100],
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.blue[700],
+                              size: 28,
+                            ),
+                          ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hello',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            _isLoadingName
+                                ? SizedBox(
+                                    width: 100,
+                                    height: 20,
+                                    child: LinearProgressIndicator(
+                                      backgroundColor: Colors.grey[200],
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.blue[300]!,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    _userName,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Stack(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.blue[700],
+                              ),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const NotificationsScreen(),
+                                  ),
+                                );
+                                // Reload notification count when coming back
+                                _loadNotificationCount();
+                              },
+                            ),
+                            if (_unreadNotificationCount > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 18,
+                                    minHeight: 18,
+                                  ),
+                                  child: Text(
+                                    _unreadNotificationCount > 99
+                                        ? '99+'
+                                        : '$_unreadNotificationCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
+                              ),
+                          ],
+                        ),
+                      ),
+                        ],
                       ),
                     ],
                   ),
@@ -82,12 +225,22 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    tabs: const [
-                      Tab(text: 'Berita Global'),
-                      Tab(text: 'Komunitas'),
-                    ],
+                  Container(
+                    color: Colors.white,
+                    child: TabBar(
+                      indicatorSize: TabBarIndicatorSize.label,
+                      indicatorWeight: 3,
+                      labelColor: Colors.blue[700],
+                      unselectedLabelColor: Colors.grey[600],
+                      labelStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      tabs: const [
+                        Tab(text: 'Berita Global'),
+                        Tab(text: 'Komunitas'),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -102,23 +255,40 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CreateNewsScreen(),
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [Colors.blue[400]!, Colors.blue[700]!],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-            );
-            
-            // Refresh community news if post was successful
-            if (result == true && _communityTabKey.currentState != null) {
-              _communityTabKey.currentState!.setState(() {
-                _communityTabKey.currentState!._loadCommunityNews();
-              });
-            }
-          },
-          child: const Icon(Icons.add),
+            ],
+          ),
+          child: FloatingActionButton(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateNewsScreen(),
+                ),
+              );
+              
+              // Refresh community news if post was successful
+              if (result == true && _communityTabKey.currentState != null) {
+                _communityTabKey.currentState!.setState(() {
+                  _communityTabKey.currentState!._loadCommunityNews();
+                });
+              }
+            },
+            child: const Icon(Icons.add),
+          ),
         ),
       ),
     );
@@ -127,22 +297,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // Delegate for pinned TabBar
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar);
+  _SliverAppBarDelegate(this._widget);
 
-  final TabBar _tabBar;
+  final Widget _widget;
 
   @override
-  double get minExtent => _tabBar.preferredSize.height;
+  double get minExtent => 48;
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get maxExtent => 48;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: _tabBar,
-    );
+    return _widget;
   }
 
   @override
@@ -203,42 +370,258 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
     });
   }
 
+  void _showCategoryFilterDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Filter Kategori',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildCategoryFilterChip('Semua', Icons.apps),
+                  _buildCategoryFilterChip('Bisnis', Icons.business),
+                  _buildCategoryFilterChip('Teknologi', Icons.computer),
+                  _buildCategoryFilterChip('Olahraga', Icons.sports_soccer),
+                  _buildCategoryFilterChip('Hiburan', Icons.movie),
+                  _buildCategoryFilterChip('Kesehatan', Icons.favorite),
+                  _buildCategoryFilterChip('Sains', Icons.science),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryFilterChip(String label, IconData icon) {
+    return FilterChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
+      onSelected: (selected) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Filter: $label'),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        // TODO: Implement category filtering
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Search Bar
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Cari berita...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _filterNews('');
-                        });
+        // Search Bar & Banner Section
+        Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchController.clear();
+                                        _filterNews('');
+                                      });
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                          onChanged: (value) {
+                            _filterNews(value);
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    InkWell(
+                      onTap: () {
+                        _showCategoryFilterDialog(context);
                       },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.blue[600],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.tune,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              filled: true,
-              fillColor: Colors.grey[100],
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+              // Promo Banner
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CreateNewsScreen(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue[400]!, Colors.blue[600]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Ada berita menarik?',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Bagikan sekarang!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.add_circle_outline,
+                                      color: Colors.blue[600],
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Buat Berita',
+                                      style: TextStyle(
+                                        color: Colors.blue[600],
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.newspaper,
+                            size: 48,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            onChanged: (value) {
-              _filterNews(value);
-            },
+            ],
           ),
         ),
         // News List
@@ -436,19 +819,189 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
               );
             }
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            itemCount: articles.length,
-            itemBuilder: (context, index) {
-              final article = articles[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: _ArticleCard(article: article),
-              );
-            },
+          child: ListView(
+            padding: const EdgeInsets.all(0),
+            children: [
+              // Top Category Section
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Top Category',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _showCategoryFilterDialog(context);
+                          },
+                          child: Text(
+                            'View All',
+                            style: TextStyle(color: Colors.blue[600]),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 90,
+                      child: Row(
+                        children: [
+                          _CategoryChip(
+                            icon: Icons.business,
+                            label: 'Business',
+                            color: Colors.blue[100]!,
+                            iconColor: Colors.blue[700]!,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Filter: Business'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          _CategoryChip(
+                            icon: Icons.sports_soccer,
+                            label: 'Sports',
+                            color: Colors.orange[100]!,
+                            iconColor: Colors.orange[700]!,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Filter: Sports'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          _CategoryChip(
+                            icon: Icons.computer,
+                            label: 'Tech',
+                            color: Colors.purple[100]!,
+                            iconColor: Colors.purple[700]!,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Filter: Tech'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Popular News Section
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Popular News',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // TODO: View all news
+                          },
+                          child: Text(
+                            'View All',
+                            style: TextStyle(color: Colors.blue[600]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // News Cards
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: articles.map((article) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _ArticleCard(article: article),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+// Category Chip Widget
+class _CategoryChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color iconColor;
+  final VoidCallback? onTap;
+
+  const _CategoryChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.iconColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: iconColor, size: 28),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: iconColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -461,9 +1014,19 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
       child: InkWell(
         onTap: () async {
           // Convert Article to NewsArticle and add to history
@@ -493,106 +1056,137 @@ class _ArticleCard extends StatelessWidget {
             );
           }
         },
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Image.network(
-                article.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 120,
+                height: 120,
+                margin: const EdgeInsets.all(12),
+                child: Image.network(
+                  article.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             // Content
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    article.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            Expanded(
+              child: Container(
+                height: 120,
+                padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Flexible(
+                      child: Text(
+                        article.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          height: 1.3,
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Description
-                  if (article.description != null &&
-                      article.description!.isNotEmpty)
-                    Text(
-                      article.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.4,
                       ),
                     ),
-                  const SizedBox(height: 12),
-                  // Meta info
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.source,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          article.sourceId,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                    const SizedBox(height: 8),
+                    // Price/Rating style metadata
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[50],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Colors.orange[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '4.8',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange[600],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      if (article.pubDate.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            article.sourceId,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Time
+                    Row(
+                      children: [
                         Icon(
                           Icons.access_time,
-                          size: 16,
-                          color: Colors.grey[600],
+                          size: 14,
+                          color: Colors.grey[500],
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _formatDate(article.pubDate),
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.grey[500],
                             fontSize: 12,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

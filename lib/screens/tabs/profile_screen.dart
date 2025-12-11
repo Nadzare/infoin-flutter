@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../data/dummy_data.dart';
 import '../../widgets/community_news_card.dart';
 import '../../widgets/recent_news_card.dart';
 import '../settings_screen.dart';
@@ -133,6 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: CircularProgressIndicator(),
         ),
@@ -141,6 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (_errorMessage != null) {
       return Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -172,50 +173,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: RefreshIndicator(
         onRefresh: _loadUserData,
         child: CustomScrollView(
           slivers: [
-          // App Bar with Settings Button
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
-                  ),
+          // Modern Profile Header
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.blue[400]!, Colors.blue[600]!],
                 ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      // Profile Avatar
-                      CircleAvatar(
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    // Logo
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/infoin-long.png',
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // App Bar with Settings
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Profile',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.settings, color: Colors.white),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SettingsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Profile Avatar & Info
+                    CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.white,
-                        backgroundImage: _userProfile?['avatar_url'] != null
-                            ? NetworkImage(_userProfile!['avatar_url'])
-                            : null,
-                        child: _userProfile?['avatar_url'] == null
-                            ? Text(
-                                _getUserAvatar(),
-                                style: TextStyle(
-                                  fontSize: 50,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : null,
+                        child: CircleAvatar(
+                          radius: 48,
+                          backgroundColor: Colors.blue[100],
+                          backgroundImage: _userProfile?['avatar_url'] != null
+                              ? NetworkImage(_userProfile!['avatar_url'])
+                              : null,
+                          child: _userProfile?['avatar_url'] == null
+                              ? Text(
+                                  _getUserAvatar(),
+                                  style: TextStyle(
+                                    fontSize: 40,
+                                    color: Colors.blue[700],
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      // Name
+                      const SizedBox(height: 16),
                       Text(
                         _getUserDisplayName(),
                         style: const TextStyle(
@@ -225,7 +271,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // Email
                       Text(
                         _getUserEmail(),
                         style: const TextStyle(
@@ -233,83 +278,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontSize: 14,
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      // Stats Cards
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _ModernStatCard(
+                                icon: Icons.article_outlined,
+                                label: 'Postingan',
+                                value: '${_userPosts.length}',
+                                color: Colors.orange,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _ModernStatCard(
+                                icon: Icons.visibility_outlined,
+                                label: 'Terbaca',
+                                value: '${_recentlyViewed.length}',
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _ModernStatCard(
+                                icon: Icons.favorite_outline,
+                                label: 'Disukai',
+                                value: '${_getTotalLikes()}',
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          // Statistics
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatItem(
-                    icon: Icons.article,
-                    label: 'Postingan',
-                    value: '${_userPosts.length}',
-                    context: context,
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  _StatItem(
-                    icon: Icons.visibility,
-                    label: 'Terbaca',
-                    value: '${_recentlyViewed.length}',
-                    context: context,
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  _StatItem(
-                    icon: Icons.favorite,
-                    label: 'Disukai',
-                    value: '${_getTotalLikes()}',
-                    context: context,
-                  ),
-                ],
-              ),
-            ),
-          ),
           // Recently Viewed Section
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'Baru Dilihat',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       if (_recentlyViewed.isNotEmpty)
@@ -477,51 +502,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _ModernStatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final BuildContext context;
+  final Color color;
 
-  const _StatItem({
+  const _ModernStatCard({
     required this.icon,
     required this.label,
     required this.value,
-    required this.context,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: Theme.of(context).colorScheme.primary,
-          size: 28,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
