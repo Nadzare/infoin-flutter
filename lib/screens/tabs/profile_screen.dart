@@ -182,10 +182,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.blue[400]!, Colors.blue[600]!],
+                image: const DecorationImage(
+                  image: AssetImage('lib/images/logo/header1.jpg'),
+                  fit: BoxFit.cover,
                 ),
               ),
               child: SafeArea(
@@ -194,11 +193,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     // Logo
                     Padding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 8),
+                      padding: const EdgeInsets.only(top: 20, bottom: 8),
                       child: Center(
                         child: Image.asset(
-                          'assets/images/infoin-long.png',
-                          height: 50,
+                          'lib/images/logo/info-putih.png',
+                          height: 70,
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -207,32 +206,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // App Bar with Settings
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Stack(
                         children: [
-                          const Text(
-                            'Profile',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          Center(
+                            child: const Text(
+                              'Profile',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.settings, color: Colors.white),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const SettingsScreen(),
-                                  ),
-                                );
-                              },
+                          Positioned(
+                            right: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.settings, color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SettingsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ],

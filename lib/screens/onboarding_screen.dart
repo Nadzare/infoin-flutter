@@ -17,19 +17,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Berita Terkini di Ujung Jari Anda',
       description:
           'Dapatkan berita terbaru dari berbagai sumber terpercaya, langsung di satu aplikasi. Infoin menghadirkan kabar terkini dengan tampilan yang cepat.',
-      imageUrl: 'https://placehold.co/1080x1920/0097A7/FFFFFF/png?text=News+Feed',
+      imageUrl: 'lib/images/landing/landing1.jpg',
     ),
     OnboardingData(
       title: 'Berita Sesuai Minatmu',
       description:
           'Pilih topik favoritmu seperti teknologi, ekonomi, hiburan, hingga olahraga. Infoin menyesuaikan konten agar kamu hanya melihat berita yang relevan.',
-      imageUrl: 'https://placehold.co/1080x1920/00ACC1/FFFFFF/png?text=Personalized',
+      imageUrl: 'lib/images/landing/landing2.jpg',
     ),
     OnboardingData(
       title: 'Selalu Terhubung dengan Dunia',
       description:
           'Akses berita kapan saja, di mana saja. Dengan Infoin, kamu tetap tahu perkembangan dunia secara real-time, tanpa batas waktu dan tempat.',
-      imageUrl: 'https://placehold.co/1080x1920/00BCD4/FFFFFF/png?text=Stay+Connected',
+      imageUrl: 'lib/images/landing/landing3.jpg',
     ),
   ];
 
@@ -141,7 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             icon: const Icon(Icons.arrow_forward),
                             label: const Text('Next'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Colors.blue[600],
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -158,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             icon: const Icon(Icons.login),
                             label: const Text('Get Started'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Colors.blue[600],
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -198,7 +198,7 @@ class _OnboardingPage extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(data.imageUrl),
+                image: AssetImage(data.imageUrl),
                 fit: BoxFit.cover,
               ),
             ),
@@ -270,7 +270,7 @@ class _DotIndicator extends StatelessWidget {
       height: 8,
       width: isActive ? 24 : 8,
       decoration: BoxDecoration(
-        color: isActive ? Theme.of(context).colorScheme.primary : Colors.white.withOpacity(0.4),
+        color: isActive ? Colors.blue[600] : Colors.blue[200]!.withOpacity(0.4),
         borderRadius: BorderRadius.circular(4),
       ),
     );
