@@ -93,6 +93,75 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _loadNews(category: apiCategory);
   }
 
+  IconData _getCategoryIcon(String categoryName) {
+    switch (categoryName) {
+      case 'Teknologi':
+        return Icons.computer;
+      case 'Kesehatan':
+        return Icons.favorite;
+      case 'Olahraga':
+        return Icons.sports_soccer;
+      case 'Ekonomi':
+        return Icons.business;
+      case 'Travel':
+        return Icons.flight;
+      case 'Pendidikan':
+        return Icons.school;
+      case 'Hiburan':
+        return Icons.movie;
+      case 'Politik':
+        return Icons.account_balance;
+      default:
+        return Icons.category;
+    }
+  }
+
+  Color _getCategoryColor(String categoryName) {
+    switch (categoryName) {
+      case 'Teknologi':
+        return Colors.purple;
+      case 'Kesehatan':
+        return Colors.red;
+      case 'Olahraga':
+        return Colors.orange;
+      case 'Ekonomi':
+        return Colors.blue;
+      case 'Travel':
+        return Colors.green;
+      case 'Pendidikan':
+        return Colors.teal;
+      case 'Hiburan':
+        return Colors.pink;
+      case 'Politik':
+        return Colors.indigo;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getCategoryIconColor(String categoryName) {
+    switch (categoryName) {
+      case 'Teknologi':
+        return Colors.purple[700]!;
+      case 'Kesehatan':
+        return Colors.red[700]!;
+      case 'Olahraga':
+        return Colors.orange[700]!;
+      case 'Ekonomi':
+        return Colors.blue[700]!;
+      case 'Travel':
+        return Colors.green[700]!;
+      case 'Pendidikan':
+        return Colors.teal[700]!;
+      case 'Hiburan':
+        return Colors.pink[700]!;
+      case 'Politik':
+        return Colors.indigo[700]!;
+      default:
+        return Colors.grey[700]!;
+    }
+  }
+
   void _clearCategory() {
     setState(() {
       _selectedCategory = null;
@@ -111,23 +180,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue[400]!, Colors.blue[600]!],
+                image: const DecorationImage(
+                  image: AssetImage('lib/images/logo/header1.jpg'),
+                  fit: BoxFit.cover,
                 ),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Logo
                   Center(
                     child: Image.asset(
-                      'assets/images/infoin-long.png',
-                      height: 50,
+                      'lib/images/logo/info-putih.png',
+                      height: 70,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -227,36 +297,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
-          // Categories Grid
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
+          // Categories Horizontal List
+          SliverToBoxAdapter(
+            child: Container(
+              height: 120,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: dummyCategories.length,
+                itemBuilder: (context, index) {
                   final category = dummyCategories[index];
                   final isSelected = _selectedCategory == category.name;
                   return Container(
+                    width: 100,
+                    margin: EdgeInsets.only(right: index < dummyCategories.length - 1 ? 12 : 0),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? Colors.blue[600]! : Colors.grey[200]!,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow: [
-                        if (isSelected)
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                      ],
+                      color: _getCategoryColor(category.name).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: InkWell(
                       onTap: () {
@@ -266,44 +323,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           _selectCategory(category.name);
                         }
                       },
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(12),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: isSelected 
-                                    ? Colors.blue[50]
-                                    : Colors.grey[100],
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  category.icon,
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    color: isSelected 
-                                        ? Colors.blue[600]
-                                        : Colors.grey[700],
-                                  ),
-                                ),
-                              ),
+                            Icon(
+                              _getCategoryIcon(category.name),
+                              size: 28,
+                              color: _getCategoryIconColor(category.name),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
                             Text(
                               category.name,
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected 
-                                    ? Colors.blue[600]
-                                    : Colors.black87,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _getCategoryIconColor(category.name),
                               ),
                               textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -311,7 +352,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   );
                 },
-                childCount: dummyCategories.length,
               ),
             ),
           ),
@@ -499,124 +539,199 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NewsDetailWebview(
-                url: article.link,
-                title: article.title,
-              ),
-            ),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Image.network(
-                article.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    article.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Material(
+          color: Colors.white,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsDetailWebview(
+                    url: article.link,
+                    title: article.title,
                   ),
-                  const SizedBox(height: 8),
-                  // Description
-                  if (article.description != null &&
-                      article.description!.isNotEmpty)
-                    Text(
-                      article.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        height: 1.4,
+                ),
+              );
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image with Gradient Overlay
+                Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Image.network(
+                        article.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  const SizedBox(height: 12),
-                  // Meta info
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.source,
-                        size: 16,
-                        color: Colors.grey[600],
+                    // Gradient Overlay
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.3),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
+                    ),
+                    // Category Badge
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[600]!.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: Text(
-                          article.sourceId,
+                          'Berita',
                           style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (article.pubDate.isNotEmpty) ...[
-                        Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(width: 4),
+                    ),
+                  ],
+                ),
+                // Content
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Text(
+                        article.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              height: 1.3,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Description
+                      if (article.description != null &&
+                          article.description!.isNotEmpty)
                         Text(
-                          _formatDate(article.pubDate),
+                          article.description!,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 12,
+                            height: 1.5,
+                            fontSize: 14,
                           ),
                         ),
-                      ],
+                      const SizedBox(height: 16),
+                      // Meta info with better styling
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.source,
+                              size: 14,
+                              color: Colors.blue[600],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              article.sourceId,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          if (article.pubDate.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.orange[50],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.orange[600],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatDate(article.pubDate),
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

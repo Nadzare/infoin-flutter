@@ -55,8 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         preferredSize: const Size.fromHeight(135),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[400]!, Colors.blue[600]!],
+            image: const DecorationImage(
+              image: AssetImage('lib/images/logo/header1.jpg'),
+              fit: BoxFit.cover,
             ),
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(30),
@@ -65,13 +66,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Column(
                 children: [
                   // Logo
                   Image.asset(
-                    'assets/images/infoin-long.png',
-                    height: 50,
+                    'lib/images/logo/info-putih.png',
+                    height: 70,
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 16),
