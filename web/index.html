@@ -21,7 +21,7 @@
   <meta name="description" content="A new Flutter project.">
 
   <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="infoin">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -31,6 +31,13 @@
 
   <title>infoin</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Sign-In Configuration -->
+  <meta name="google-signin-client_id" content="856961816595-ilpgjv5v3vshgbeq2uh567c5ldsrtmvs.apps.googleusercontent.com">
+  
+  <!-- Google API Scripts - Loaded synchronously before Flutter to prevent race condition -->
+  <script src="https://apis.google.com/js/platform.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

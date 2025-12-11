@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'register_screen.dart';
 import '../main_screen.dart';
+import '../onboarding/country_selection_screen.dart';
 import '../../services/auth_service.dart';
+import 'dart:async';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,12 +20,56 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  late final StreamSubscription<AuthState> _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Listen untuk OAuth redirect (Web only)
+    if (kIsWeb) {
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        final session = data.session;
+        if (session != null && mounted) {
+          _handleAuthSuccess(session.user);
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    if (kIsWeb) {
+      _authSubscription.cancel();
+    }
     super.dispose();
+  }
+
+  Future<void> _handleAuthSuccess(User user) async {
+    try {
+      // Cek apakah user sudah setup preferensi
+      final hasOnboarded = await _authService.hasCompletedOnboarding(user.id);
+
+      if (!mounted) return;
+
+      if (hasOnboarded) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CountrySelectionScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error handling auth success: $e');
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -87,13 +134,52 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleGoogleLogin() {
-    // Google login will be implemented later
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google login akan segera hadir'),
-      ),
-    );
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (kIsWeb) {
+        // Web: Trigger OAuth redirect
+        await _authService.signInWithGoogle();
+        // Loading state akan tetap true karena browser akan redirect
+        // Auth state listener akan handle navigation setelah redirect kembali
+      } else {
+        // Mobile: Handle native Google Sign-In
+        final response = await _authService.signInWithGoogle();
+
+        if (response.user != null && mounted) {
+          await _handleAuthSuccess(response.user!);
+        }
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign In gagal: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign In gagal: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted && !kIsWeb) {
+        // Untuk mobile, reset loading state
+        // Untuk web, biarkan loading karena akan redirect
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -222,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
               // Google Login Button
               OutlinedButton.icon(
-                onPressed: _handleGoogleLogin,
+                onPressed: _isLoading ? null : _handleGoogleLogin,
                 icon: const Text(
                   'G',
                   style: TextStyle(

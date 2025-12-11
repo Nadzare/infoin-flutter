@@ -41,6 +41,7 @@ dependencies:
   google_generative_ai: ^0.4.6
   timeago: ^3.7.0
   shared_preferences: ^2.3.3
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
