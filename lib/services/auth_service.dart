@@ -94,7 +94,7 @@ class AuthService {
         
         final response = await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
-          redirectTo: 'http://localhost:5000',
+          redirectTo: 'http://localhost:54980',
           authScreenLaunchMode: LaunchMode.platformDefault,
         );
 

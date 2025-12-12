@@ -857,7 +857,7 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
-                      height: 110,
+                      height: 120,
                       child: Row(
                         children: [
                           _CategoryChip(

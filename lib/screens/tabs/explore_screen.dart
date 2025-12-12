@@ -415,7 +415,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             ? 'Hasil Pencarian (${_filteredArticles.length})'
                             : _selectedCategory != null
                                 ? 'Berita $_selectedCategory (${_filteredArticles.length})'
-                                : 'Semua Berita (${_filteredArticles.length})',
+                                : 'Semua Berita',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
