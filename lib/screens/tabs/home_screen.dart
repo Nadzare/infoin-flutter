@@ -857,14 +857,14 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
-                      height: 90,
+                      height: 110,
                       child: Row(
                         children: [
                           _CategoryChip(
                             icon: Icons.business,
                             label: 'Business',
-                            color: Colors.blue[100]!,
-                            iconColor: Colors.blue[700]!,
+                            color: Colors.indigo,
+                            iconColor: Colors.indigo[700]!,
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -879,8 +879,8 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
                           _CategoryChip(
                             icon: Icons.sports_soccer,
                             label: 'Sports',
-                            color: Colors.orange[100]!,
-                            iconColor: Colors.orange[700]!,
+                            color: Colors.cyan,
+                            iconColor: Colors.cyan[700]!,
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -895,8 +895,8 @@ class _GlobalNewsTabState extends State<_GlobalNewsTab> {
                           _CategoryChip(
                             icon: Icons.computer,
                             label: 'Tech',
-                            color: Colors.purple[100]!,
-                            iconColor: Colors.purple[700]!,
+                            color: Colors.blue,
+                            iconColor: Colors.blue[700]!,
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -984,30 +984,70 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: iconColor, size: 28),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: iconColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withOpacity(0.15),
+              color.withOpacity(0.05),
             ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(16),
+            splashColor: color.withOpacity(0.3),
+            highlightColor: color.withOpacity(0.1),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, color: iconColor, size: 22),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: iconColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

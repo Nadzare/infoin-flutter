@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _hasNavigated = false; // Flag untuk prevent multiple navigation
   late final StreamSubscription<AuthState> _authSubscription;
 
   @override
@@ -28,9 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
     
     // Listen untuk OAuth redirect (Web only)
     if (kIsWeb) {
+      print('🌐 Web platform detected - Setting up auth listener');
       _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final session = data.session;
+        print('🔔 Auth state changed: ${data.event}');
         if (session != null && mounted) {
+          print('✅ Session detected, handling auth success');
           _handleAuthSuccess(session.user);
         }
       });
@@ -48,18 +52,39 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleAuthSuccess(User user) async {
+    // Prevent multiple navigation
+    if (_hasNavigated) {
+      print('⚠️ Navigation already handled, skipping...');
+      return;
+    }
+    
+    _hasNavigated = true;
+    
     try {
+      print('🔐 handleAuthSuccess called for user: ${user.id}');
+      
+      // PENTING: Pastikan profile ada di database sebelum cek onboarding
+      await _authService.ensureProfileExists(
+        user.id,
+        email: user.email,
+        fullName: user.userMetadata?['full_name'] ?? user.userMetadata?['name'],
+      );
+      
       // Cek apakah user sudah setup preferensi
       final hasOnboarded = await _authService.hasCompletedOnboarding(user.id);
+
+      print('📍 Navigation decision: hasOnboarded = $hasOnboarded');
 
       if (!mounted) return;
 
       if (hasOnboarded) {
+        print('✅ User has completed onboarding -> Navigate to MainScreen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
+        print('⚠️ User has NOT completed onboarding -> Navigate to CountrySelectionScreen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -68,7 +93,17 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print('Error handling auth success: $e');
+      print('❌ Error handling auth success: $e');
+      
+      // Jika ada error, tetap arahkan ke CountrySelectionScreen sebagai fallback
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CountrySelectionScreen(),
+          ),
+        );
+      }
     }
   }
 
@@ -98,13 +133,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.user != null) {
-        // Login berhasil, langsung ke MainScreen
-        // Karena user sudah pernah membuat akun sebelumnya
+        // Login berhasil, cek apakah sudah setup preference
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
+          await _handleAuthSuccess(response.user!);
         }
       }
     } on AuthException catch (e) {

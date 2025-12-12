@@ -55,19 +55,41 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final user = _authService.getCurrentUser();
     
     if (user != null) {
-      // User sudah login, cek apakah sudah complete onboarding
-      final hasCompletedOnboarding = await _authService.hasCompletedOnboarding(user.id);
+      print('👤 User logged in: ${user.id}');
       
-      if (mounted) {
-        if (hasCompletedOnboarding) {
-          // Preferences sudah lengkap, langsung ke MainScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
-        } else {
-          // User baru register, belum setup preferences
-          // Arahkan ke CountrySelectionScreen untuk melanjutkan setup
+      try {
+        // PENTING: Pastikan profile ada di database
+        await _authService.ensureProfileExists(
+          user.id,
+          email: user.email,
+          fullName: user.userMetadata?['full_name'] ?? user.userMetadata?['name'],
+        );
+        
+        // User sudah login, cek apakah sudah complete onboarding
+        final hasCompletedOnboarding = await _authService.hasCompletedOnboarding(user.id);
+        
+        if (mounted) {
+          if (hasCompletedOnboarding) {
+            // Preferences sudah lengkap, langsung ke MainScreen
+            print('✅ Navigating to MainScreen');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+            );
+          } else {
+            // User baru register, belum setup preferences
+            // Arahkan ke CountrySelectionScreen untuk melanjutkan setup
+            print('⚠️ Navigating to CountrySelectionScreen');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CountrySelectionScreen()),
+            );
+          }
+        }
+      } catch (e) {
+        print('❌ Error in splash navigation: $e');
+        // Jika ada error, arahkan ke CountrySelectionScreen
+        if (mounted) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const CountrySelectionScreen()),
@@ -76,6 +98,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
     } else {
       // Belum login, ke halaman onboarding/welcome
+      print('🚪 No user, navigating to OnboardingScreen');
       if (mounted) {
         Navigator.pushReplacement(
           context,

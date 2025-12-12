@@ -119,21 +119,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Color _getCategoryColor(String categoryName) {
     switch (categoryName) {
       case 'Teknologi':
-        return Colors.purple;
-      case 'Kesehatan':
-        return Colors.red;
-      case 'Olahraga':
-        return Colors.orange;
-      case 'Ekonomi':
         return Colors.blue;
-      case 'Travel':
-        return Colors.green;
-      case 'Pendidikan':
-        return Colors.teal;
-      case 'Hiburan':
-        return Colors.pink;
-      case 'Politik':
+      case 'Kesehatan':
+        return Colors.lightBlue;
+      case 'Olahraga':
+        return Colors.cyan;
+      case 'Ekonomi':
         return Colors.indigo;
+      case 'Travel':
+        return Colors.teal;
+      case 'Pendidikan':
+        return Colors.blue[800]!;
+      case 'Hiburan':
+        return Colors.blueAccent;
+      case 'Politik':
+        return Colors.blueGrey;
       default:
         return Colors.grey;
     }
@@ -142,21 +142,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Color _getCategoryIconColor(String categoryName) {
     switch (categoryName) {
       case 'Teknologi':
-        return Colors.purple[700]!;
-      case 'Kesehatan':
-        return Colors.red[700]!;
-      case 'Olahraga':
-        return Colors.orange[700]!;
-      case 'Ekonomi':
         return Colors.blue[700]!;
-      case 'Travel':
-        return Colors.green[700]!;
-      case 'Pendidikan':
-        return Colors.teal[700]!;
-      case 'Hiburan':
-        return Colors.pink[700]!;
-      case 'Politik':
+      case 'Kesehatan':
+        return Colors.lightBlue[700]!;
+      case 'Olahraga':
+        return Colors.cyan[700]!;
+      case 'Ekonomi':
         return Colors.indigo[700]!;
+      case 'Travel':
+        return Colors.teal[700]!;
+      case 'Pendidikan':
+        return Colors.blue[900]!;
+      case 'Hiburan':
+        return Colors.blueAccent[700]!;
+      case 'Politik':
+        return Colors.blueGrey[700]!;
       default:
         return Colors.grey[700]!;
     }
@@ -312,41 +312,79 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     width: 100,
                     margin: EdgeInsets.only(right: index < dummyCategories.length - 1 ? 12 : 0),
                     decoration: BoxDecoration(
-                      color: _getCategoryColor(category.name).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          _getCategoryColor(category.name).withOpacity(0.15),
+                          _getCategoryColor(category.name).withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _getCategoryColor(category.name).withOpacity(0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getCategoryColor(category.name).withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: InkWell(
-                      onTap: () {
-                        if (isSelected) {
-                          _clearCategory();
-                        } else {
-                          _selectCategory(category.name);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _getCategoryIcon(category.name),
-                              size: 28,
-                              color: _getCategoryIconColor(category.name),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              category.name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _getCategoryIconColor(category.name),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          if (isSelected) {
+                            _clearCategory();
+                          } else {
+                            _selectCategory(category.name);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        splashColor: _getCategoryColor(category.name).withOpacity(0.3),
+                        highlightColor: _getCategoryColor(category.name).withOpacity(0.1),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _getCategoryColor(category.name).withOpacity(0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  _getCategoryIcon(category.name),
+                                  size: 24,
+                                  color: _getCategoryIconColor(category.name),
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                category.name,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getCategoryIconColor(category.name),
+                                  letterSpacing: 0.3,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
